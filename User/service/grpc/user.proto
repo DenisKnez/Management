@@ -1,0 +1,23 @@
+syntax = "proto3";
+
+package grpc;
+
+option go_package = "github.com/DenisKnez/management/user/service/grpc";
+
+
+service Todo {
+    rpc CreateTodo(CreateTodoRequest) returns (CreateTodoResponse);
+    rpc DeleteTodo(DeleteTodoRequest) returns (DeleteTodoResponse);
+}
+
+message CreateTodoRequest {
+    string text = 1;
+}
+
+message CreateTodoResponse {}
+
+message DeleteTodoRequest {
+    string id = 1;
+}
+
+message DeleteTodoResponse {}
