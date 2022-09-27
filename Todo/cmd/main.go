@@ -2,6 +2,8 @@ package main
 
 import (
 	_ "github.com/DenisKnez/management/todo/docs"
+
+	_ "github.com/golang-migrate/migrate/v4/database/postgres"
 	_ "github.com/jackc/pgconn"
 	_ "github.com/jackc/pgx/v4"
 	_ "github.com/jackc/pgx/v4/stdlib"
@@ -27,6 +29,8 @@ func main() {
 	if db == nil {
 		server.Echo.Logger.Fatal("failed to connect to postgres, shutting down...")
 	}
+
+	server.migratePostgres()
 
 	// Serve swagger docs
 	// swagger/index.html

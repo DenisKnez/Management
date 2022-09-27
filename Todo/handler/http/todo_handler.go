@@ -68,7 +68,8 @@ func (t *TodoHandler) UpdateTodo(c echo.Context) error {
 	}
 
 	// update todo
-	err = t.TodoService.UpdateTodo(c.Request().Context(), req.ID, service.Todo{
+	err = t.TodoService.UpdateTodo(c.Request().Context(), service.Todo{
+		ID:   req.ID,
 		Text: req.Text,
 	})
 	if err != nil {

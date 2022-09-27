@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"database/sql"
+	"embed"
 	"net"
 	"net/http"
 	"os"
@@ -10,11 +11,16 @@ import (
 	"time"
 
 	todoGrpc "github.com/DenisKnez/management/todo/handler/grpc"
+	"github.com/golang-migrate/migrate/v4"
+	"github.com/golang-migrate/migrate/v4/source/iofs"
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
 	echoLog "github.com/labstack/gommon/log"
 	"google.golang.org/grpc"
 )
+
+//go:embed db/migrations/*.sql
+var migrations embed.FS
 
 type HttpServer struct {
 	Echo *echo.Echo
@@ -43,7 +49,7 @@ func (server *HttpServer) httpListen() {
 	httpPort := ":4141"
 	server.Echo.Logger.Infof("Starting http listener on port: %s", httpPort)
 	if err := server.Echo.Start(httpPort); err != nil && err != http.ErrServerClosed {
-		server.Echo.Logger.Fatal("failed to start http server, shutting down...")
+		server.Echo.Logger.Fatalf("failed to start http server: %v", err)
 	}
 }
 
@@ -61,6 +67,29 @@ func (server *HttpServer) grpcListen(grpcHandler *todoGrpc.GrpcHandler) {
 	err = grpcServer.Serve(listener)
 	if err != nil || err != grpc.ErrServerStopped {
 		server.Echo.Logger.Fatalf("failed to start grpc server: %v\n", err)
+	}
+}
+
+func (server *HttpServer) migratePostgres() {
+	migs, err := iofs.New(migrations, "db/migrations")
+	if err != nil {
+		server.Echo.Logger.Fatalf("failed to initialize migrator: %v", err)
+	}
+
+	m, err := migrate.NewWithSourceInstance("iofs", migs, "postgres://postgres:notebook@localhost:5432/todo?sslmode=disable")
+	if err != nil {
+		server.Echo.Logger.Fatalf("migrator failed to connect to database: %v", err)
+	}
+
+	defer m.Close()
+
+	err = m.Up()
+	if err != nil {
+		if err.Error() == "no change" {
+			server.Echo.Logger.Info("no migrations were applied")
+		} else {
+			server.Echo.Logger.Fatalf("failed to migrate database: %v", err)
+		}
 	}
 }
 
