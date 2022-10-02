@@ -7,7 +7,7 @@ import (
 	"time"
 
 	"github.com/DenisKnez/management/todo/repository"
-	"github.com/DenisKnez/management/todo/util"
+	"github.com/DenisKnez/util"
 	"github.com/gofrs/uuid"
 	"github.com/stretchr/testify/require"
 )
@@ -20,7 +20,7 @@ func TestCreateTodo(t *testing.T) {
 
 	todoRepo := new(repository.MockTodoRepository)
 	id := uuid.Must(uuid.FromString("037d562a-f5f9-41df-9ded-f44991dd2309"))
-	util := util.NewUtil(&now, &id)
+	util := util.New(&now, &id)
 
 	todoRepo.On("CreateTodo", repository.TodoEntity{
 		ID:        id,
@@ -53,7 +53,7 @@ func TestUpdateTodo(t *testing.T) {
 	todoRepo := new(repository.MockTodoRepository)
 	todoRepo.On("UpdateTodo", todoEntity).Return(nil)
 
-	util := util.NewUtil(&now, &id)
+	util := util.New(&now, &id)
 
 	service := TodoService{
 		Util:     *util,
@@ -79,7 +79,7 @@ func TestDeleteTodo(t *testing.T) {
 	todoRepo := new(repository.MockTodoRepository)
 	todoRepo.On("DeleteTodo", id).Return(nil)
 
-	util := util.NewUtil(&now, &id)
+	util := util.New(&now, &id)
 
 	service := TodoService{
 		Util:     *util,

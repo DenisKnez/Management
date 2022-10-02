@@ -4,7 +4,7 @@ import (
 	"context"
 
 	"github.com/DenisKnez/management/todo/repository"
-	"github.com/DenisKnez/management/todo/util"
+	"github.com/DenisKnez/util"
 	"github.com/gofrs/uuid"
 	"github.com/labstack/echo/v4"
 )
