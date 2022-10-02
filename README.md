@@ -7,7 +7,7 @@
 </br>
 </br>
 
-This project does not have any goal or anything. It's just using technologies that I have not used or dont have alot of expirence combined with things I have experience with and know very well. It's here to show what I know and also if I find something interesting I'm going to implemented as part of this project. It's going to be just another service or something like that depends on what the technology is
+This project does not have any goal or anything. It's just using technologies that I have not used or dont have alot of expirence combined with things I have experience with and know very well. It's here to show what I know and also if I find something interesting I' going to implemented as part of this project. It's going to be just another service or something like that depends on what the technology is
 
 **TODO**:
 - add grpc streaming between secrvices 
@@ -27,3 +27,4 @@ This project does not have any goal or anything. It's just using technologies th
 - setup CI/CD with Github actions (or maybe CircleCI have not jet decided)
 - when everything is setup for services setup the make file for ease of life 
 - setup helm and terraform when actual servers come into play
+- setup rabbitMQ and/or kafka and/or NATS
