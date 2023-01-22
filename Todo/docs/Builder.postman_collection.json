@@ -1,0 +1,238 @@
+{
+	"info": {
+		"_postman_id": "f356d2d6-005c-4edf-b2d5-647356e09de1",
+		"name": "Builder",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "10349206"
+	},
+	"item": [
+		{
+			"name": "Users",
+			"item": [
+				{
+					"name": "Create user",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "{{TOKEN}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"id\": \"9d33555a-a55d-4a22-86a1-5185b96ad3d4\",\n    \"firstname\": \"denis\",\n    \"lastname\": \"ss\",\n    \"county\": \"Osijek-baranja\",\n    \"city\": \"osijek\",\n    \"street\": \"vlas 123\",\n    \"dateOfBirth\": \"2012-01-23T15:00:05Z\",\n    \"phoneNumber\": \"0242481240812\",\n    \"gender\": \"male\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{URL}}/users",
+							"host": [
+								"{{URL}}"
+							],
+							"path": [
+								"users"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Delete user",
+					"request": {
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "{{TOKEN}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{URL}}/users/ba643127-1ade-41ca-9124-a51c877013dd",
+							"host": [
+								"{{URL}}"
+							],
+							"path": [
+								"users",
+								"ba643127-1ade-41ca-9124-a51c877013dd"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get user",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "{{TOKEN}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{URL}}/users/ba643127-1ade-41ca-9124-a51c877013dd",
+							"host": [
+								"{{URL}}"
+							],
+							"path": [
+								"users",
+								"ba643127-1ade-41ca-9124-a51c877013dd"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "New Request",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "{{TOKEN}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"ID\": \"ba643127-1ade-41ca-9124-a51c877013dd\",\n    \"Email\": \"\",\n    \"Firstname\": \"denis\",\n    \"Lastname\": \"ss\",\n    \"Password\": \"$2a$14$R6o2PlDqLWtjL/s6c/uK8u61ilm.zfZQ8kfM8pnYhlow5keC8RwxG\",\n    \"County\": \"Osijek-baranja\",\n    \"City\": \"osijek\",\n    \"Street\": \"vlas 123\",\n    \"DateOfBirth\": \"2012-01-23T00:00:00Z\",\n    \"PhoneNumber\": \"024248112812\",\n    \"Gender\": \"male\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{URL}}/users/",
+							"host": [
+								"{{URL}}"
+							],
+							"path": [
+								"users",
+								""
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Auth",
+			"item": [
+				{
+					"name": "Verify phone number",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"email\": \"hello@gmail.com\",\n    \"phoneNumber\": \"385994728074\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{URL}}/auth/verify",
+							"host": [
+								"{{URL}}"
+							],
+							"path": [
+								"auth",
+								"verify"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Register",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"verificationCode\": \"103-933\",\n    \"email\": \"hello23@gmail.com\",\n    \"firstname\": \"denis\",\n    \"lastname\": \"ss\",\n    \"password\": \"password\",\n    \"county\": \"Osijek-baranja\",\n    \"city\": \"osijek\",\n    \"street\": \"vlas 123\",\n    \"dateOfBirth\": \"2012-01-23T15:00:05Z\",\n    \"phoneNumber\": \"0242481120812\",\n    \"gender\": \"male\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{URL}}/auth/register",
+							"host": [
+								"{{URL}}"
+							],
+							"path": [
+								"auth",
+								"register"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Login",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"email\": \"hello2@gmail.com\",\n    \"password\": \"password\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{URL}}/auth/login",
+							"host": [
+								"{{URL}}"
+							],
+							"path": [
+								"auth",
+								"login"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Refresh",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{URL}}/auth/refresh",
+							"host": [
+								"{{URL}}"
+							],
+							"path": [
+								"auth",
+								"refresh"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		}
+	]
+}

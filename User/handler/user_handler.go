@@ -1,6 +1,7 @@
 package handler
 
 import (
+	"io/ioutil"
 	"net/http"
 
 	"github.com/DenisKnez/management/user/service"
@@ -9,6 +10,37 @@ import (
 
 type UserHandler struct {
 	UserService service.Service
+}
+
+func (handler *UserHandler) UploadFile(c *gin.Context) {
+	name := c.PostForm("name")
+	formFile, err := c.FormFile("data")
+	if err != nil {
+		c.Error(err)
+		return
+	}
+
+	file, err := formFile.Open()
+	if err != nil {
+		c.Error(err)
+		return
+	}
+	data, err := ioutil.ReadAll(file)
+	if err != nil {
+		c.Error(err)
+		return
+	}
+
+	err = handler.UserService.UploadFile(c.Request.Context(), service.File{
+		Name: name,
+		Data: data,
+	})
+	if err != nil {
+		c.Error(err)
+		return
+	}
+
+	c.JSON(http.StatusOK, nil)
 }
 
 type CreateUserRequest struct {

@@ -3,10 +3,11 @@ package main
 import (
 	"database/sql"
 
-	todoGrpc "github.com/DenisKnez/management/todo/handler/grpc"
-	"github.com/DenisKnez/management/todo/handler/http"
-	"github.com/DenisKnez/management/todo/repository"
-	"github.com/DenisKnez/management/todo/service"
+	todoGrpc "github.com/DenisKnez/management/todo/api/handler/grpc"
+	"github.com/DenisKnez/management/todo/api/handler/http"
+	"github.com/DenisKnez/management/todo/api/repository"
+	"github.com/DenisKnez/management/todo/api/service"
+	"github.com/DenisKnez/util"
 	"github.com/labstack/echo/v4"
 )
 
@@ -19,6 +20,7 @@ func setupHandlers(db *sql.DB, logger echo.Logger) (*http.TodoHandler, *todoGrpc
 	todoService := service.TodoService{
 		TodoRepo: &repo,
 		Logger:   logger,
+		Util:     *util.New(nil, nil),
 	}
 
 	todoHttpHandler := http.TodoHandler{

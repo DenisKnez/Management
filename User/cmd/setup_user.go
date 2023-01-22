@@ -26,4 +26,5 @@ func setupUser(g *gin.Engine, mongoDB *mongo.Client, todoServiceClient *userGrpc
 
 	g.POST("/users", userHandler.CreateUser)
 	g.POST("/users/:id", userHandler.UpdateUser)
+	g.POST("/users/file", userHandler.UploadFile)
 }

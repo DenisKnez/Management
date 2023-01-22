@@ -1,0 +1,33 @@
+# Create a persistent volume claim for the Postgres deployment
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: mongo-pvc
+spec:
+  storageClassName: local-path
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 2Gi
+  volumeName: mongo-pv
+
+---
+
+# Create a persistent volume for the Postgres deployment
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: mongo-pv
+spec:
+  claimRef:
+    namespace: default
+    name: mongo-pvc
+  capacity:
+    storage: 2Gi
+  accessModes:
+    - ReadWriteOnce
+  storageClassName: local-path
+  hostPath:
+    path: /var/lib/mongo/data
+  

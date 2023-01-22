@@ -7,7 +7,7 @@ metadata:
 spec:
   selector: 
     matchLabels:
-      name: user
+      app: user
   strategy:
     rollingUpdate:
       maxSurge: 2
@@ -16,11 +16,11 @@ spec:
   template:
     metadata:
       labels:
-        name: user
+        app: user
     spec:
       containers:
-      - image: softwareaccessdockerid/todo-service:1.0.0
-        imagePullPolicy: Always
+      - image: user-service:0.0.1
+        imagePullPolicy: IfNotPresent
         name:  user
         resources:
           requests:
@@ -29,6 +29,16 @@ spec:
           limits:
             memory: "512Mi"
             cpu: "100"
+        volumeMounts:
+          - name: config-volume
+            mountPath: /etc/config
+        env:
+        - name: CONFIG_PATH
+          value: /etc/config/config.ini
+      volumes:
+        - name: config-volume
+          configMap:
+            name: todo-config-v1
 
 ---
 

@@ -20,7 +20,7 @@ type Server struct {
 }
 
 func (server *Server) dialTodoService(uri string) (*grpc.ClientConn, error) {
-	return grpc.Dial("localhost:50001", grpc.WithTransportCredentials(insecure.NewCredentials()), grpc.WithBlock())
+	return grpc.Dial("todo:50001", grpc.WithTransportCredentials(insecure.NewCredentials()), grpc.WithBlock())
 }
 
 func (server *Server) createTodoClient(conn *grpc.ClientConn) *userGrpc.TodoClient {
@@ -47,6 +47,7 @@ func (server *Server) connectToMongo(uri string) (*mongo.Client, error) {
 			continue
 		}
 
+		time.Sleep(2 * time.Second)
 		log.Printf("connected to mongo db!")
 		return client, nil
 	}

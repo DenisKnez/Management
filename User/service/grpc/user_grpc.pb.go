@@ -22,8 +22,8 @@ const _ = grpc.SupportPackageIsVersion7
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type TodoClient interface {
+	UploadFile(ctx context.Context, opts ...grpc.CallOption) (Todo_UploadFileClient, error)
 	CreateTodo(ctx context.Context, in *CreateTodoRequest, opts ...grpc.CallOption) (*CreateTodoResponse, error)
-	DeleteTodo(ctx context.Context, in *DeleteTodoRequest, opts ...grpc.CallOption) (*DeleteTodoResponse, error)
 }
 
 type todoClient struct {
@@ -32,6 +32,40 @@ type todoClient struct {
 
 func NewTodoClient(cc grpc.ClientConnInterface) TodoClient {
 	return &todoClient{cc}
+}
+
+func (c *todoClient) UploadFile(ctx context.Context, opts ...grpc.CallOption) (Todo_UploadFileClient, error) {
+	stream, err := c.cc.NewStream(ctx, &Todo_ServiceDesc.Streams[0], "/grpc.Todo/UploadFile", opts...)
+	if err != nil {
+		return nil, err
+	}
+	x := &todoUploadFileClient{stream}
+	return x, nil
+}
+
+type Todo_UploadFileClient interface {
+	Send(*UploadFileRequest) error
+	CloseAndRecv() (*UploadFileResponse, error)
+	grpc.ClientStream
+}
+
+type todoUploadFileClient struct {
+	grpc.ClientStream
+}
+
+func (x *todoUploadFileClient) Send(m *UploadFileRequest) error {
+	return x.ClientStream.SendMsg(m)
+}
+
+func (x *todoUploadFileClient) CloseAndRecv() (*UploadFileResponse, error) {
+	if err := x.ClientStream.CloseSend(); err != nil {
+		return nil, err
+	}
+	m := new(UploadFileResponse)
+	if err := x.ClientStream.RecvMsg(m); err != nil {
+		return nil, err
+	}
+	return m, nil
 }
 
 func (c *todoClient) CreateTodo(ctx context.Context, in *CreateTodoRequest, opts ...grpc.CallOption) (*CreateTodoResponse, error) {
@@ -43,21 +77,12 @@ func (c *todoClient) CreateTodo(ctx context.Context, in *CreateTodoRequest, opts
 	return out, nil
 }
 
-func (c *todoClient) DeleteTodo(ctx context.Context, in *DeleteTodoRequest, opts ...grpc.CallOption) (*DeleteTodoResponse, error) {
-	out := new(DeleteTodoResponse)
-	err := c.cc.Invoke(ctx, "/grpc.Todo/DeleteTodo", in, out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
 // TodoServer is the server API for Todo service.
 // All implementations must embed UnimplementedTodoServer
 // for forward compatibility
 type TodoServer interface {
+	UploadFile(Todo_UploadFileServer) error
 	CreateTodo(context.Context, *CreateTodoRequest) (*CreateTodoResponse, error)
-	DeleteTodo(context.Context, *DeleteTodoRequest) (*DeleteTodoResponse, error)
 	mustEmbedUnimplementedTodoServer()
 }
 
@@ -65,11 +90,11 @@ type TodoServer interface {
 type UnimplementedTodoServer struct {
 }
 
+func (UnimplementedTodoServer) UploadFile(Todo_UploadFileServer) error {
+	return status.Errorf(codes.Unimplemented, "method UploadFile not implemented")
+}
 func (UnimplementedTodoServer) CreateTodo(context.Context, *CreateTodoRequest) (*CreateTodoResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method CreateTodo not implemented")
-}
-func (UnimplementedTodoServer) DeleteTodo(context.Context, *DeleteTodoRequest) (*DeleteTodoResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method DeleteTodo not implemented")
 }
 func (UnimplementedTodoServer) mustEmbedUnimplementedTodoServer() {}
 
@@ -82,6 +107,32 @@ type UnsafeTodoServer interface {
 
 func RegisterTodoServer(s grpc.ServiceRegistrar, srv TodoServer) {
 	s.RegisterService(&Todo_ServiceDesc, srv)
+}
+
+func _Todo_UploadFile_Handler(srv interface{}, stream grpc.ServerStream) error {
+	return srv.(TodoServer).UploadFile(&todoUploadFileServer{stream})
+}
+
+type Todo_UploadFileServer interface {
+	SendAndClose(*UploadFileResponse) error
+	Recv() (*UploadFileRequest, error)
+	grpc.ServerStream
+}
+
+type todoUploadFileServer struct {
+	grpc.ServerStream
+}
+
+func (x *todoUploadFileServer) SendAndClose(m *UploadFileResponse) error {
+	return x.ServerStream.SendMsg(m)
+}
+
+func (x *todoUploadFileServer) Recv() (*UploadFileRequest, error) {
+	m := new(UploadFileRequest)
+	if err := x.ServerStream.RecvMsg(m); err != nil {
+		return nil, err
+	}
+	return m, nil
 }
 
 func _Todo_CreateTodo_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
@@ -102,24 +153,6 @@ func _Todo_CreateTodo_Handler(srv interface{}, ctx context.Context, dec func(int
 	return interceptor(ctx, in, info, handler)
 }
 
-func _Todo_DeleteTodo_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(DeleteTodoRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(TodoServer).DeleteTodo(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: "/grpc.Todo/DeleteTodo",
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(TodoServer).DeleteTodo(ctx, req.(*DeleteTodoRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
 // Todo_ServiceDesc is the grpc.ServiceDesc for Todo service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -131,11 +164,13 @@ var Todo_ServiceDesc = grpc.ServiceDesc{
 			MethodName: "CreateTodo",
 			Handler:    _Todo_CreateTodo_Handler,
 		},
+	},
+	Streams: []grpc.StreamDesc{
 		{
-			MethodName: "DeleteTodo",
-			Handler:    _Todo_DeleteTodo_Handler,
+			StreamName:    "UploadFile",
+			Handler:       _Todo_UploadFile_Handler,
+			ClientStreams: true,
 		},
 	},
-	Streams:  []grpc.StreamDesc{},
 	Metadata: "service/grpc/user.proto",
 }

@@ -4,18 +4,17 @@ import (
 	"context"
 	"database/sql"
 	"embed"
+	"fmt"
 	"net"
 	"net/http"
 	"os"
 	"os/signal"
 	"time"
 
-	todoGrpc "github.com/DenisKnez/management/todo/handler/grpc"
+	todoGrpc "github.com/DenisKnez/management/todo/api/handler/grpc"
 	"github.com/golang-migrate/migrate/v4"
 	"github.com/golang-migrate/migrate/v4/source/iofs"
 	"github.com/labstack/echo/v4"
-	"github.com/labstack/echo/v4/middleware"
-	echoLog "github.com/labstack/gommon/log"
 	"google.golang.org/grpc"
 )
 
@@ -23,12 +22,14 @@ import (
 var migrations embed.FS
 
 type HttpServer struct {
-	Echo *echo.Echo
+	Echo   *echo.Echo
+	Config *Config
 }
 
-func NewServer(echo *echo.Echo) *HttpServer {
+func NewServer(echo *echo.Echo, config *Config) *HttpServer {
 	return &HttpServer{
-		Echo: echo,
+		Echo:   echo,
+		Config: config,
 	}
 }
 
@@ -46,27 +47,28 @@ func (server *HttpServer) handleGracefulShutdown() {
 }
 
 func (server *HttpServer) httpListen() {
-	httpPort := ":4141"
-	server.Echo.Logger.Infof("Starting http listener on port: %s", httpPort)
-	if err := server.Echo.Start(httpPort); err != nil && err != http.ErrServerClosed {
+	bb := fmt.Sprintf(":%s", server.Config.HttpPort)
+	server.Echo.Logger.Infof("Starting http listener on port: %s", bb)
+	if err := server.Echo.Start(bb); err != nil && err != http.ErrServerClosed {
 		server.Echo.Logger.Fatalf("failed to start http server: %v", err)
 	}
 }
 
 func (server *HttpServer) grpcListen(grpcHandler *todoGrpc.GrpcHandler) {
-	grpcPort := ":50001"
-	listener, err := net.Listen("tcp", grpcPort)
+	ss := fmt.Sprintf(":%s", server.Config.GrpcPort)
+	fmt.Println("the grpc port: ", ss)
+	listener, err := net.Listen("tcp", ss)
 	if err != nil {
-		server.Echo.Logger.Fatal("failed to start grpc listener, shutting down...")
+		server.Echo.Logger.Fatalf("failed to start grpc listener, shutting down... [Error: %v]\n", err)
 	}
 
 	grpcServer := grpc.NewServer()
 	todoGrpc.RegisterTodoServer(grpcServer, grpcHandler)
 
-	server.Echo.Logger.Infof("Starting grpc listener on port: %s", grpcPort)
+	server.Echo.Logger.Infof("Starting grpc listener on port: %s", server.Config.GrpcPort)
 	err = grpcServer.Serve(listener)
 	if err != nil || err != grpc.ErrServerStopped {
-		server.Echo.Logger.Fatalf("failed to start grpc server: %v\n", err)
+		server.Echo.Logger.Fatalf("failed to serve grpc server: %v\n", err)
 	}
 }
 
@@ -76,7 +78,7 @@ func (server *HttpServer) migratePostgres() {
 		server.Echo.Logger.Fatalf("failed to initialize migrator: %v", err)
 	}
 
-	m, err := migrate.NewWithSourceInstance("iofs", migs, "postgres://postgres:notebook@localhost:5432/todo?sslmode=disable")
+	m, err := migrate.NewWithSourceInstance("iofs", migs, server.Config.PostgresDSN)
 	if err != nil {
 		server.Echo.Logger.Fatalf("migrator failed to connect to database: %v", err)
 	}
@@ -94,11 +96,8 @@ func (server *HttpServer) migratePostgres() {
 }
 
 func (server *HttpServer) connectToPostgres() *sql.DB {
-	// TODO: get the number of attempts from config
-	attempts := 10
-
-	for i := 0; i < attempts; i++ {
-		connection, err := openPostgresDB("host=localhost port=5432 user=postgres password=notebook dbname=todo sslmode=disable")
+	for i := 0; i < server.Config.NumOfAttemptsToConnectToDatabase; i++ {
+		connection, err := openPostgresDB(server.Config.PostgresDSN)
 		if err != nil {
 			server.Echo.Logger.Errorf("attempt to connect to postgres failed: %v", err)
 		} else {
@@ -110,13 +109,4 @@ func (server *HttpServer) connectToPostgres() *sql.DB {
 	}
 
 	return nil
-}
-
-func (server *HttpServer) setupEchoMiddleware() {
-	server.Echo.Use(middleware.Logger())
-	server.Echo.Use(middleware.Recover())
-}
-
-func (server *HttpServer) setupEchoLogger() {
-	server.Echo.Logger.SetLevel(echoLog.INFO)
 }

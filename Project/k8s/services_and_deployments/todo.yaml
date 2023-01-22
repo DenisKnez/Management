@@ -7,7 +7,7 @@ metadata:
 spec:
   selector: 
     matchLabels:
-      name: todo
+      app: todo
   strategy:
     rollingUpdate:
       maxSurge: 2
@@ -16,11 +16,11 @@ spec:
   template:
     metadata:
       labels:
-        name:  todo
+        app:  todo
     spec:
       containers:
-      - image: softwareaccessdockerid/todo-service:1.0.0
-        imagePullPolicy: Always
+      - image: todo-service:0.0.1
+        imagePullPolicy: IfNotPresent 
         name:  todo
         resources:
           requests:
@@ -29,34 +29,31 @@ spec:
           limits:
             memory: "512Mi"
             cpu: "100"
-        env:
-        - name: WEB_PORT
-          valueFrom:
-            configMapKeyRef:
-              name: config-map
-              key: todo_port
-        ports:
-        - containerPort:  5000
-          name:  my-name
         volumeMounts:
-        - mountPath: /data
-          name: data
+          - name: config-volume
+            mountPath: /etc/config
+        ports:
+        - containerPort:  4141
+        env:
+        - name: CONFIG_PATH
+          value: /etc/config/config.ini
       volumes:
-        - name: data
-          emptyDir: {}
-
+        - name: config-volume
+          configMap:
+            name: todo-config-v1
 
 ---
 
-kind: Service
 apiVersion: v1
+kind: Service
 metadata:
   name: todo
 spec:
   selector:
     app: todo
-  type: ClusterIP
+  type: NodePort 
   ports:
   - name:  web-port
-    port:  80
-    targetPort:  4141
+    port:  4141
+  - name: grpc-port
+    port: 50001

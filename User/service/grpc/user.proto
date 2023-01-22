@@ -4,10 +4,9 @@ package grpc;
 
 option go_package = "github.com/DenisKnez/management/user/service/grpc";
 
-
 service Todo {
+    rpc UploadFile(stream UploadFileRequest) returns (UploadFileResponse);
     rpc CreateTodo(CreateTodoRequest) returns (CreateTodoResponse);
-    rpc DeleteTodo(DeleteTodoRequest) returns (DeleteTodoResponse);
 }
 
 message CreateTodoRequest {
@@ -16,8 +15,9 @@ message CreateTodoRequest {
 
 message CreateTodoResponse {}
 
-message DeleteTodoRequest {
-    string id = 1;
+message UploadFileRequest {
+    string fileName = 1;
+    bytes fileData = 2;
 }
 
-message DeleteTodoResponse {}
+message UploadFileResponse {}

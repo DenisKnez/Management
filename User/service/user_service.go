@@ -2,6 +2,7 @@ package service
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/DenisKnez/management/user/repository"
 	userGrpc "github.com/DenisKnez/management/user/service/grpc"
@@ -11,6 +12,7 @@ import (
 type Service interface {
 	CreateUser(ctx context.Context, user User) error
 	UpdateUser(ctx context.Context, id string, user User) error
+	UploadFile(ctx context.Context, file File) error
 	// DeleteUser(ctx context.Context, id uuid.UUID) error
 	// GetUser(ctx context.Context, id uuid.UUID) (User, error)
 	// GetUsers(ctx context.Context) ([]User, error)
@@ -44,4 +46,44 @@ func (service *UserService) UpdateUser(ctx context.Context, id string, user User
 		ID:   objectID,
 		Name: user.Name,
 	})
+}
+
+func (service *UserService) UploadFile(ctx context.Context, file File) error {
+	client, err := service.TodoServiceClient.UploadFile(ctx)
+	if err != nil {
+		return err
+	}
+
+	if len(file.Data) <= 10_000_000 {
+		sendFile(client, file.Name, file.Data)
+		return nil
+	}
+
+	sections := len(file.Data) / 10_000_000
+
+	for i := 0; i <= sections; i++ {
+		var data []byte
+		if i == sections {
+			data = file.Data[(i-1)*10_000_000:]
+		} else {
+			data = file.Data[i : i*10_000_000]
+		}
+
+		sendFile(client, file.Name, data)
+
+		fmt.Println("transfering 10 megabytes...")
+	}
+	return nil
+}
+
+func sendFile(client userGrpc.Todo_UploadFileClient, fileName string, fileData []byte) error {
+	err := client.Send(&userGrpc.UploadFileRequest{
+		FileName: fileName,
+		FileData: fileData,
+	})
+	if err != nil {
+		return err
+	}
+
+	return nil
 }

@@ -2,13 +2,13 @@ package main
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/fvbock/endless"
 	"github.com/gin-gonic/gin"
 )
 
 func main() {
-
 	g := gin.Default()
 
 	server := Server{}
@@ -27,7 +27,7 @@ func main() {
 
 	todoServiceClient := server.createTodoClient(todoServiceConn)
 
-	mongoDB, err := server.connectToMongo("mongodb://localhost:27017")
+	mongoDB, err := server.connectToMongo("mongodb://root:password@mongo-service:27017")
 	if err != nil {
 		panic(err)
 	}
@@ -47,5 +47,6 @@ func main() {
 		})
 	})
 
+	fmt.Println("hi")
 	endless.ListenAndServe(":4242", g)
 }
